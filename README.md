@@ -16,9 +16,3 @@ Trip Advisor is a single-page Flutter app that works fully offline and surfaces 
    flutter pub get
    flutter run
    ```
-
-## Notes
-- Works 100% offline; no Firebase, REST, or storage dependencies.
-- Entire UI and data live in `lib/main.dart`.
-- To use real flags, place your PNGs in `assets/flags/` with the names used in `flagAsset` (e.g., `japan.png`, `usa.png`, `saudi_arabia.png`), then add each path under the `assets:` section of `pubspec.yaml`.
-- Android launcher name is set to “Trip Advisor” in `android/app/src/main/AndroidManifest.xml`. Replace `@mipmap/ic_launcher` with your custom launcher icons if desired.
