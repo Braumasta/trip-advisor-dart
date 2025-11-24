@@ -1,0 +1,437 @@
+import 'package:flutter/material.dart';
+
+import 'country_guide.dart';
+
+final List<CountryGuide> countryGuides = [
+  CountryGuide(
+    name: 'Japan',
+    description:
+        'Island nation known for its blend of tradition and technology; home to temples, bullet trains, and meticulous etiquette.',
+    accent: const Color(0xFF5C6BC0),
+    etiquetteTips: [
+      'Remove shoes in homes, ryokan, and some restaurants.',
+      'Keep conversations quiet on trains and buses.',
+      'Bow politely when greeting and thanking.',
+      'Queue in an orderly line when boarding transport.',
+      'Do not stick chopsticks upright in rice.',
+      'Hand cash or cards with both hands.',
+    ],
+    travelTips: [
+      'Carry coins for vending machines and lockers.',
+      'IC cards like Suica/PASMO simplify transit payments.',
+      'Most places are cash-friendly; some rural spots are cash-only.',
+      'Convenience stores sell great quick meals 24/7.',
+      'Download offline maps for metro transfers.',
+      'Avoid rush hour trains with luggage if possible.',
+    ],
+    flagAsset: 'assets/flags/japan.png',
+  ),
+  CountryGuide(
+    name: 'France',
+    description:
+        'European hub of art, cuisine, and fashion with deep regional cultures from Paris to Provence.',
+    accent: const Color(0xFF26A69A),
+    etiquetteTips: [
+      'Start with "Bonjour" before any request.',
+      'Avoid loud conversation in restaurants and cafes.',
+      'Greet shop staff when entering and leaving.',
+      'Keep hands visible during meals.',
+      'Light cheek kisses or a handshake greet friends and colleagues.',
+      'Do not ask for menu substitutions unless necessary.',
+    ],
+    travelTips: [
+      'Validate metro tickets before boarding trains where required.',
+      'Keep coins for cafe counters and public restrooms.',
+      'Book museum tickets online to skip queues.',
+      'Dinner service starts later; plan snacks accordingly.',
+      'Pickpocketing can occur in busy tourist zones—secure your bag.',
+    ],
+    flagAsset: 'assets/flags/france.png',
+  ),
+  CountryGuide(
+    name: 'Turkey',
+    description:
+        'Bridge of Europe and Asia, rich with Ottoman history, bazaars, and coastal landscapes.',
+    accent: const Color(0xFFE57373),
+    etiquetteTips: [
+      'Accept tea when offered as a sign of hospitality.',
+      'Use the right hand when giving or receiving items.',
+      'Remove shoes when entering many homes or prayer areas.',
+      'Dress modestly when visiting mosques; cover shoulders and knees.',
+      'Avoid public displays of affection in conservative areas.',
+      'Handshake greetings are common; be gentle and patient.',
+    ],
+    travelTips: [
+      'Carry a scarf for mosque visits.',
+      'Keep small bills for dolmus (shared taxi) fares.',
+      'Tap water may vary—consider bottled water when unsure.',
+      'Markets expect bargaining; be polite and smile.',
+      'Check prayer times for mosque visiting hours.',
+    ],
+    flagAsset: 'assets/flags/turkey.png',
+  ),
+  CountryGuide(
+    name: 'Egypt',
+    description:
+        'Ancient civilization along the Nile, famed for pyramids, temples, and desert landscapes.',
+    accent: const Color(0xFF8E24AA),
+    etiquetteTips: [
+      'Use the right hand for eating, giving, and receiving.',
+      'Dress modestly at religious and rural sites.',
+      'Avoid pointing the sole of your shoe at others.',
+      'Greet elders first with a polite handshake.',
+      'Keep small bills for tipping service staff.',
+      'Ask permission before photographing people.',
+    ],
+    travelTips: [
+      'Carry cash; many places are cash-preferred.',
+      'Hydrate often and plan around midday heat.',
+      'Agree on taxi fares before starting the ride.',
+      'At historic sites, stay within marked areas.',
+      'Use a hat and sunscreen for desert excursions.',
+    ],
+    flagAsset: 'assets/flags/egypt.png',
+  ),
+  CountryGuide(
+    name: 'Germany',
+    description:
+        'Central European nation known for engineering, forests, and vibrant cities like Berlin and Munich.',
+    accent: const Color(0xFF43A047),
+    etiquetteTips: [
+      'Be punctual; even a few minutes late can feel rude.',
+      'Recycle and sort waste where bins are provided.',
+      'Keep voices low on public transit.',
+      'Cash is still common—carry euros for small shops.',
+      'Cross streets only at crossings when the light is green.',
+      'A firm handshake with eye contact is standard.',
+    ],
+    travelTips: [
+      'Validate paper train tickets where required.',
+      'Carry coins for public restrooms.',
+      'Sunday shopping is limited; plan groceries ahead.',
+      'Regional trains can be crowded—board early with luggage.',
+      'Water is often bottled; "still" is non-sparkling.',
+    ],
+    flagAsset: 'assets/flags/germany.png',
+  ),
+  CountryGuide(
+    name: 'Brazil',
+    description:
+        'South America\'s largest country, home to the Amazon, samba, football culture, and coastal cities.',
+    accent: const Color(0xFFFFB74D),
+    etiquetteTips: [
+      'Warm greetings with a handshake or cheek kiss are common.',
+      'Personal space is closer; step back slowly if needed.',
+      'Avoid discussing politics or income early in conversations.',
+      'Do not bring sand into homes; shake off shoes.',
+      'Casual dress is fine, but beachwear stays at the beach.',
+      'Tipping 10% at restaurants is appreciated.',
+    ],
+    travelTips: [
+      'Keep valuables minimal at the beach; use waterproof pouches.',
+      'Ride with registered taxis or trusted apps.',
+      'Stay aware of surroundings in crowded areas.',
+      'Use mosquito repellent in tropical zones.',
+      'Carry small change for buses and snacks.',
+    ],
+    flagAsset: 'assets/flags/brazil.png',
+  ),
+  CountryGuide(
+    name: 'Italy',
+    description:
+        'Mediterranean country rich in Roman history, Renaissance art, and regional food traditions.',
+    accent: const Color(0xFFEF5350),
+    etiquetteTips: [
+      'Greet with "Buongiorno"/"Buonasera" and a handshake.',
+      'Coffee is quick at the bar; cappuccino is usually a morning drink.',
+      'Wait for the "Prego" invitation before entering shops.',
+      'Dress neatly when visiting churches; cover shoulders and knees.',
+      'Do not add cheese to seafood pasta unless offered.',
+      'Keep to the right on narrow sidewalks and stairways.',
+    ],
+    travelTips: [
+      'Validate train tickets before boarding regionale trains.',
+      'Carry coins for espresso bars and small cafes.',
+      'August can be hot and many shops close—plan accordingly.',
+      'Watch for pickpockets around major monuments.',
+      'A "coperto" cover charge on bills is normal.',
+    ],
+    flagAsset: 'assets/flags/italy.png',
+  ),
+  CountryGuide(
+    name: 'India',
+    description:
+        'Vast and diverse nation with deep spiritual traditions, colorful festivals, and varied cuisines.',
+    accent: const Color(0xFF26C6DA),
+    etiquetteTips: [
+      'Greet with "Namaste" and a slight bow with joined palms.',
+      'Remove shoes in homes and temples; look for cues.',
+      'Use the right hand for eating and passing items.',
+      'Dress modestly, especially at religious sites.',
+      'Ask before taking photos of people or shrines.',
+      'Respect personal space in queues and give elders priority.',
+    ],
+    travelTips: [
+      'Carry small bills for autos and tips.',
+      'Use bottled water or filtered water; avoid ice when unsure.',
+      'Download offline maps for dense city areas.',
+      'Plan extra time for traffic in large cities.',
+      'Trains and metros can be crowded—keep bags zipped.',
+    ],
+    flagAsset: 'assets/flags/india.png',
+  ),
+  CountryGuide(
+    name: 'Korea',
+    description:
+        'Modern, tech-forward nation with Confucian heritage, vibrant food, and efficient transit.',
+    accent: const Color(0xFF42A5F5),
+    etiquetteTips: [
+      'Offer and receive items with both hands.',
+      'Do not pour your own drink; serve others and let them serve you.',
+      'Wait for the eldest to start eating before you do.',
+      'Speak softly on public transit and escalators.',
+      'Bow slightly when greeting; handshakes may be gentle.',
+      'Place finished chopsticks neatly on a rest or bowl edge.',
+    ],
+    travelTips: [
+      'T-Money cards work widely on buses and subways.',
+      'Subway seats near doors fill quickly—stand aside to let people exit.',
+      'Many cafes and stations have reliable Wi-Fi.',
+      'Carry a reusable bag; shops may charge for plastic bags.',
+      'Trash bins can be scarce—hold onto small trash until you find one.',
+    ],
+    flagAsset: 'assets/flags/korea.png',
+  ),
+  CountryGuide(
+    name: 'USA',
+    description:
+        'Large and varied country with diverse regions, national parks, and major cultural hubs.',
+    accent: const Color(0xFF7E57C2),
+    etiquetteTips: [
+      'Tipping 15–20% at restaurants is standard.',
+      'Queue patiently and respect personal space.',
+      'Small talk is common before getting to the point.',
+      'Keep phone volume low in shared spaces.',
+      'Be on time for appointments and reservations.',
+      'Ask before petting service animals.',
+    ],
+    travelTips: [
+      'Sales tax is added at checkout; totals vary by state.',
+      'Carry a valid ID for age-restricted purchases.',
+      'Public transit varies—research city systems in advance.',
+      'Long distances may require flights or intercity buses.',
+      'Check local weather swings; indoor spaces can be air-conditioned.',
+    ],
+    flagAsset: 'assets/flags/usa.png',
+  ),
+  CountryGuide(
+    name: 'Lebanon',
+    description:
+        'Eastern Mediterranean country known for coastal cities, mountain villages, and layered history.',
+    accent: const Color(0xFF6D4C41),
+    etiquetteTips: [
+      'Greet with a handshake; close friends may exchange cheek kisses.',
+      'Use the right hand to pass items and food.',
+      'Dress modestly in villages and religious sites.',
+      'Arrive a little late to social gatherings—it is acceptable.',
+      'Accept coffee or sweets when offered as hospitality.',
+    ],
+    travelTips: [
+      'Carry cash; some small shops prefer it over cards.',
+      'Traffic can be heavy—plan buffer time.',
+      'Tap water is not always potable; use bottled water.',
+      'Check opening hours; some shops close midday.',
+      'Keep small change for service tips and parking.',
+    ],
+    flagAsset: 'assets/flags/lebanon.png',
+  ),
+  CountryGuide(
+    name: 'China',
+    description:
+        'Vast country with ancient dynastic sites and rapidly growing modern cities.',
+    accent: const Color(0xFF00897B),
+    etiquetteTips: [
+      'Offer and receive items with both hands.',
+      'Elders are greeted first in groups.',
+      'Do not stick chopsticks upright in rice.',
+      'Avoid loud public arguments or confrontations.',
+      'Accept food or drink politely; leaving a little can show you are full.',
+    ],
+    travelTips: [
+      'Cashless payments are common; keep some cash for smaller vendors.',
+      'Carry your passport for train and hotel checks.',
+      'High-speed rail is reliable—arrive early for security checks.',
+      'Download offline maps and translation tools.',
+      'Some websites/apps may be restricted; prepare alternatives offline.',
+    ],
+    flagAsset: 'assets/flags/china.png',
+  ),
+  CountryGuide(
+    name: 'Russia',
+    description:
+        'World\'s largest country, spanning Europe and Asia, with rich literature, art, and varied climates.',
+    accent: const Color(0xFFB71C1C),
+    etiquetteTips: [
+      'Greet with a firm handshake and eye contact.',
+      'Remove gloves before shaking hands.',
+      'Avoid whistling indoors; considered bad luck.',
+      'Give and receive items with care; avoid showing the soles of shoes.',
+      'Offer seats to elders on transit.',
+    ],
+    travelTips: [
+      'Carry your passport and migration card when traveling.',
+      'Metro systems are fast; escalators move quickly—stand on the right.',
+      'Winter requires layered clothing and good footwear.',
+      'Plan for Cyrillic signage; learn a few key words.',
+      'Keep small bills for kiosks and local transport.',
+    ],
+    flagAsset: 'assets/flags/russia.png',
+  ),
+  CountryGuide(
+    name: 'Iran',
+    description:
+        'Persian heritage nation known for poetry, bazaars, and diverse landscapes from deserts to forests.',
+    accent: const Color(0xFF00796B),
+    etiquetteTips: [
+      'Dress modestly; headscarves for women in public spaces.',
+      'Use the right hand for giving items and eating.',
+      'Taarof (polite refusal) is common—insist gently when offering to pay.',
+      'Remove shoes when entering many homes.',
+      'Avoid public displays of affection.',
+    ],
+    travelTips: [
+      'Cash is essential; international cards often do not work.',
+      'Carry a local SIM for navigation if available; keep offline maps as backup.',
+      'Taxis are common—confirm the fare before riding.',
+      'Fridays are the weekend; plan government errands accordingly.',
+      'Keep a scarf handy for visiting mosques or shrines.',
+    ],
+    flagAsset: 'assets/flags/iran.png',
+  ),
+  CountryGuide(
+    name: 'Saudi Arabia',
+    description:
+        'Birthplace of Islam with rapidly modernizing cities and expansive desert landscapes.',
+    accent: const Color(0xFF9C27B0),
+    etiquetteTips: [
+      'Greet with "As-salamu alaykum" and a gentle handshake.',
+      'Use the right hand for eating and passing items.',
+      'Dress modestly; cover shoulders and knees in public.',
+      'Avoid public displays of affection.',
+      'Accept coffee or dates when offered as hospitality.',
+    ],
+    travelTips: [
+      'Friday prayer affects opening hours; plan visits accordingly.',
+      'Ride services are common in cities; confirm pickup spots.',
+      'Stay hydrated in hot weather and use sunscreen.',
+      'Carry cash for small shops, though cards are widespread.',
+      'Respect prayer times; some shops pause service briefly.',
+    ],
+    flagAsset: 'assets/flags/saudi_arabia.png',
+  ),
+  CountryGuide(
+    name: 'Iraq',
+    description:
+        'Historic Mesopotamian heartland along the Tigris and Euphrates with ancient sites and rich culture.',
+    accent: const Color(0xFF6A1B9A),
+    etiquetteTips: [
+      'Greet with a handshake and a polite "As-salamu alaykum".',
+      'Use the right hand for giving and receiving items.',
+      'Dress modestly, especially at religious and cultural sites.',
+      'Offer tea or coffee when hosting guests.',
+      'Avoid sensitive political topics unless invited.',
+    ],
+    travelTips: [
+      'Carry cash; card acceptance can vary.',
+      'Check local guidance for areas and times to visit.',
+      'Stay hydrated and plan for hot weather in summer.',
+      'Ask permission before photographing people or checkpoints.',
+      'Keep small bills for taxis and tips.',
+    ],
+    flagAsset: 'assets/flags/iraq.png',
+  ),
+  CountryGuide(
+    name: 'Jordan',
+    description:
+        'Kingdom known for Petra, Wadi Rum, and a long history of trade routes and hospitality.',
+    accent: const Color(0xFF795548),
+    etiquetteTips: [
+      'Use the right hand when greeting or offering items.',
+      'Dress modestly, especially in rural areas and religious sites.',
+      'Accept tea or coffee as a gesture of welcome.',
+      'Do not rush greetings; exchange pleasantries first.',
+      'Avoid showing the soles of your shoes toward people.',
+    ],
+    travelTips: [
+      'Carry cash for taxis and small vendors.',
+      'Petra and desert areas get hot—bring water and sun protection.',
+      'Taxis are common; agree on fare or use the meter.',
+      'Friday is a day of prayer; expect slower mornings.',
+      'Keep coins for restroom access at some sites.',
+    ],
+    flagAsset: 'assets/flags/jordan.png',
+  ),
+  CountryGuide(
+    name: 'Syria',
+    description:
+        'Levant nation with ancient cities and markets; recovering regions vary, so follow current guidance.',
+    accent: const Color(0xFF455A64),
+    etiquetteTips: [
+      'Greetings often include a handshake and kind words.',
+      'Offer and receive items with the right hand.',
+      'Hospitality is important—accept drinks or sweets politely.',
+      'Dress modestly in public spaces.',
+      'Avoid heated political discussions.',
+    ],
+    travelTips: [
+      'Carry cash for most transactions.',
+      'Stay aware of local guidance for safe travel areas.',
+      'Dress for the season; evenings can be cool.',
+      'Learn a few Arabic greetings for smoother interactions.',
+      'Plan extra time for checkpoints or formalities.',
+    ],
+    flagAsset: 'assets/flags/syria.png',
+  ),
+  CountryGuide(
+    name: 'Belgium',
+    description:
+        'Bilingual nation known for medieval towns, EU institutions, and culinary specialties like chocolate and waffles.',
+    accent: const Color(0xFF1E88E5),
+    etiquetteTips: [
+      'Greet with a light handshake; use "Bonjour" or "Goede dag".',
+      'Be punctual for meetings and reservations.',
+      'Keep voices low on public transport.',
+      'Do not litter; recycling is encouraged.',
+      'Split checks are acceptable; tipping is modest but appreciated.',
+    ],
+    travelTips: [
+      'Carry coins for restrooms at some stations.',
+      'Trains connect cities quickly—validate tickets where required.',
+      'Weather can change fast; keep a light rain jacket.',
+      'Try local chocolates and waffles at reputable shops.',
+      'Many places accept cards, but small cafes may prefer cash.',
+    ],
+    flagAsset: 'assets/flags/belgium.png',
+  ),
+  CountryGuide(
+    name: 'The Gambia',
+    description:
+        'Small West African nation along the Gambia River, known for friendly communities and riverfront life.',
+    accent: const Color(0xFF2E7D32),
+    etiquetteTips: [
+      'Greet with a handshake and a smile; use the right hand.',
+      'Accept offers of water or attaya tea as hospitality.',
+      'Dress modestly in villages and religious areas.',
+      'Avoid using the left hand to pass items.',
+      'Ask before photographing people or compounds.',
+    ],
+    travelTips: [
+      'Carry cash; smaller shops may not take cards.',
+      'Keep small bills for taxis and ferries.',
+      'Stay hydrated and use sun protection in mid-day heat.',
+      'Mosquito repellent is useful, especially near rivers.',
+      'Confirm prices before hiring taxis or boats.',
+    ],
+    flagAsset: 'assets/flags/gambia.png',
+  ),
+];
