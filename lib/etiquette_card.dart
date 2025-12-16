@@ -35,118 +35,150 @@ class _EtiquetteCardState extends State<EtiquetteCard> {
         : country.travelTips;
 
     return Card(
-      child: ExpansionTile(
-        key: ValueKey('${country.name}-${widget.isExpanded}'),
-        initiallyExpanded: widget.isExpanded,
-        tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        collapsedShape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(16)),
-        ),
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(16)),
-        ),
-        leading: ConstrainedBox(
-          constraints: const BoxConstraints(minWidth: 52, maxWidth: 60),
-          child: Center(
-            child: FlagBadge(
-              fallbackColor: country.accent,
-              assetPath: country.flagAsset,
-            ),
-          ),
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              splashRadius: 20,
-              icon: Icon(
-                widget.isFavorite ? Icons.favorite : Icons.favorite_border,
-                color: widget.isFavorite ? country.accent : Colors.black45,
-              ),
-              onPressed: widget.onFavoriteToggle,
-            ),
-            Icon(
-              widget.isExpanded ? Icons.expand_less : Icons.expand_more,
-              color: Colors.black54,
-            ),
-          ],
-        ),
-        onExpansionChanged: widget.onExpansionChanged,
-        title: Text(
-          country.name,
-          style: textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: Colors.black87,
-          ),
-        ),
-        subtitle: Text(
-          _selected == TipCategory.etiquette
-              ? 'Travel etiquette essentials'
-              : 'On-the-go travel tips',
-          style: textTheme.bodyMedium?.copyWith(color: Colors.black54),
-        ),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(16)),
+      ),
+      child: Column(
         children: [
-          const SizedBox(height: 6),
-          _DescriptionTile(text: country.description),
-          const SizedBox(height: 12),
-          ToggleButtons(
-            borderRadius: BorderRadius.circular(12),
-            selectedColor: Colors.white,
-            fillColor: country.accent,
-            color: Colors.black87,
-            constraints: const BoxConstraints(minWidth: 120, minHeight: 42),
-            isSelected: [
-              _selected == TipCategory.etiquette,
-              _selected == TipCategory.travel,
-            ],
-            onPressed: (index) {
-              setState(() {
-                _selected = index == 0
-                    ? TipCategory.etiquette
-                    : TipCategory.travel;
-              });
-            },
-            children: const [
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 6),
-                child: Text('Etiquette'),
-              ),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 6),
-                child: Text('Travel Tips'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: tips
-                .map(
-                  (tip) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    child: Row(
+          InkWell(
+            borderRadius: const BorderRadius.all(Radius.circular(16)),
+            onTap: () => widget.onExpansionChanged(!widget.isExpanded),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(minWidth: 52, maxWidth: 60),
+                    child: Center(
+                      child: FlagBadge(
+                        fallbackColor: country.accent,
+                        assetPath: country.flagAsset,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          Icons.fiber_manual_record,
-                          size: 10,
-                          color: country.accent,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            tip,
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: Colors.black87, height: 1.35),
+                        Text(
+                          country.name,
+                          style: textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black87,
                           ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _selected == TipCategory.etiquette
+                              ? 'Travel etiquette essentials'
+                              : 'On-the-go travel tips',
+                          style:
+                              textTheme.bodyMedium?.copyWith(color: Colors.black54),
                         ),
                       ],
                     ),
                   ),
-                )
-                .toList(),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        splashRadius: 20,
+                        icon: Icon(
+                          widget.isFavorite
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          color: widget.isFavorite
+                              ? country.accent
+                              : Colors.black45,
+                        ),
+                        onPressed: widget.onFavoriteToggle,
+                      ),
+                      Icon(
+                        widget.isExpanded ? Icons.expand_less : Icons.expand_more,
+                        color: Colors.black54,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ),
+          if (widget.isExpanded)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 6),
+                  _DescriptionTile(text: country.description),
+                  const SizedBox(height: 12),
+                  Center(
+                    child: ToggleButtons(
+                      borderRadius: BorderRadius.circular(12),
+                      selectedColor: Colors.white,
+                      fillColor: country.accent,
+                      color: Colors.black87,
+                      constraints:
+                          const BoxConstraints(minWidth: 120, minHeight: 42),
+                      isSelected: [
+                        _selected == TipCategory.etiquette,
+                        _selected == TipCategory.travel,
+                      ],
+                      onPressed: (index) {
+                        setState(() {
+                          _selected = index == 0
+                              ? TipCategory.etiquette
+                              : TipCategory.travel;
+                        });
+                      },
+                      children: const [
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 6),
+                          child: Text('Etiquette'),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 6),
+                          child: Text('Travel Tips'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: tips
+                        .map(
+                          (tip) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  Icons.fiber_manual_record,
+                                  size: 10,
+                                  color: country.accent,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    tip,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
+                                            color: Colors.black87, height: 1.35),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );

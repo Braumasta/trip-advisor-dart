@@ -32,7 +32,7 @@ class _SignUpPageState extends State<SignUpPage> {
   void _submit() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Account created (mock)')),
+      const SnackBar(content: Text('Account created')),
     );
   }
 
@@ -119,8 +119,10 @@ class _SignUpPageState extends State<SignUpPage> {
                             if (value == null || value.trim().isEmpty) {
                               return 'Email is required';
                             }
-                            if (!value.contains('@')) {
-                              return 'Enter a valid email';
+                            final email = value.trim();
+                            final emailPattern = RegExp(r'.+@.+\\..+');
+                            if (!emailPattern.hasMatch(email)) {
+                              return 'Enter a valid email (e.g. name@example.com)';
                             }
                             return null;
                           },

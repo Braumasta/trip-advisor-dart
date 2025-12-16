@@ -137,14 +137,16 @@ class _HomeSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GradientBackground(
-      child: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-          children: [
-            _SearchBar(query: searchQuery, onChanged: onSearchChanged),
-            const SizedBox(height: 12),
-            if (countries.isEmpty)
+    final listPadding = const EdgeInsets.fromLTRB(16, 16, 16, 24);
+
+    if (countries.isEmpty) {
+      return GradientBackground(
+        child: SafeArea(
+          child: ListView(
+            padding: listPadding,
+            children: [
+              _SearchBar(query: searchQuery, onChanged: onSearchChanged),
+              const SizedBox(height: 12),
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 48),
                 child: Center(
@@ -153,22 +155,33 @@ class _HomeSection extends StatelessWidget {
                     style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                   ),
                 ),
-              )
-            else
-              ...countries.map(
-                (country) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: EtiquetteCard(
-                    country: country,
-                    isFavorite: favorites.contains(country.name),
-                    isExpanded: expandedCountryName == country.name,
-                    onFavoriteToggle: () => onToggleFavorite(country),
-                    onExpansionChanged: (expanded) =>
-                        onExpansionChanged(country, expanded),
-                  ),
-                ),
               ),
-          ],
+            ],
+          ),
+        ),
+      );
+    }
+
+    return GradientBackground(
+      child: SafeArea(
+        child: ListView.separated(
+          padding: listPadding,
+          itemCount: countries.length + 1,
+          separatorBuilder: (context, index) => const SizedBox(height: 12),
+          itemBuilder: (context, index) {
+            if (index == 0) {
+              return _SearchBar(query: searchQuery, onChanged: onSearchChanged);
+            }
+            final country = countries[index - 1];
+            return EtiquetteCard(
+              country: country,
+              isFavorite: favorites.contains(country.name),
+              isExpanded: expandedCountryName == country.name,
+              onFavoriteToggle: () => onToggleFavorite(country),
+              onExpansionChanged: (expanded) =>
+                  onExpansionChanged(country, expanded),
+            );
+          },
         ),
       ),
     );

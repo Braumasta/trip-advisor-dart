@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'demo_auth_state.dart';
 import 'gradient_background.dart';
 import 'sign_up_page.dart';
 
@@ -26,8 +27,10 @@ class _LoginPageState extends State<LoginPage> {
 
   void _submitLogin() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
+    DemoAuthState.instance.signIn(_emailController.text);
+    Navigator.of(context).pop();
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Signed in (mock)')),
+      const SnackBar(content: Text('Signed in')),
     );
   }
 
@@ -35,12 +38,19 @@ class _LoginPageState extends State<LoginPage> {
     _resetEmailController.text = _emailController.text;
     showModalBottomSheet<void>(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
+        final viewInsets = MediaQuery.of(context).viewInsets;
         return Padding(
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 20,
+            bottom: 12 + viewInsets.bottom,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,7 +76,7 @@ class _LoginPageState extends State<LoginPage> {
                     Navigator.of(context).pop();
                     ScaffoldMessenger.of(this.context).showSnackBar(
                       const SnackBar(
-                        content: Text('Reset link sent (mock)'),
+                        content: Text('Reset link sent'),
                       ),
                     );
                   },
@@ -111,8 +121,10 @@ class _LoginPageState extends State<LoginPage> {
                             if (value == null || value.trim().isEmpty) {
                               return 'Email is required';
                             }
-                            if (!value.contains('@')) {
-                              return 'Enter a valid email';
+                            final email = value.trim();
+                            final emailPattern = RegExp(r'.+@.+\\..+');
+                            if (!emailPattern.hasMatch(email)) {
+                              return 'Enter a valid email (e.g. name@example.com)';
                             }
                             return null;
                           },
@@ -128,9 +140,6 @@ class _LoginPageState extends State<LoginPage> {
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Password is required';
-                            }
-                            if (value.length < 6) {
-                              return 'Use at least 6 characters';
                             }
                             return null;
                           },
