@@ -36,13 +36,9 @@ class _PlaceholderFlag extends StatelessWidget {
       child: Container(
         width: 32,
         height: 24,
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         alignment: Alignment.center,
-        child: Icon(
-          Icons.flag,
-          size: 14,
-          color: color,
-        ),
+        child: Icon(Icons.flag, size: 14, color: color),
       ),
     );
   }

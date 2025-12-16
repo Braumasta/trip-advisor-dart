@@ -1,12 +1,22 @@
 import 'package:flutter/material.dart';
-
 import 'country_guide.dart';
 import 'flag_badge.dart';
 
 class EtiquetteCard extends StatefulWidget {
-  const EtiquetteCard({required this.country, super.key});
+  const EtiquetteCard({
+    required this.country,
+    required this.isFavorite,
+    required this.onFavoriteToggle,
+    required this.isExpanded,
+    required this.onExpansionChanged,
+    super.key,
+  });
 
   final CountryGuide country;
+  final bool isFavorite;
+  final VoidCallback onFavoriteToggle;
+  final bool isExpanded;
+  final ValueChanged<bool> onExpansionChanged;
 
   @override
   State<EtiquetteCard> createState() => _EtiquetteCardState();
@@ -26,6 +36,8 @@ class _EtiquetteCardState extends State<EtiquetteCard> {
 
     return Card(
       child: ExpansionTile(
+        key: ValueKey('${country.name}-${widget.isExpanded}'),
+        initiallyExpanded: widget.isExpanded,
         tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         collapsedShape: const RoundedRectangleBorder(
@@ -43,6 +55,24 @@ class _EtiquetteCardState extends State<EtiquetteCard> {
             ),
           ),
         ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              splashRadius: 20,
+              icon: Icon(
+                widget.isFavorite ? Icons.favorite : Icons.favorite_border,
+                color: widget.isFavorite ? country.accent : Colors.black45,
+              ),
+              onPressed: widget.onFavoriteToggle,
+            ),
+            Icon(
+              widget.isExpanded ? Icons.expand_less : Icons.expand_more,
+              color: Colors.black54,
+            ),
+          ],
+        ),
+        onExpansionChanged: widget.onExpansionChanged,
         title: Text(
           country.name,
           style: textTheme.titleMedium?.copyWith(
@@ -72,8 +102,9 @@ class _EtiquetteCardState extends State<EtiquetteCard> {
             ],
             onPressed: (index) {
               setState(() {
-                _selected =
-                    index == 0 ? TipCategory.etiquette : TipCategory.travel;
+                _selected = index == 0
+                    ? TipCategory.etiquette
+                    : TipCategory.travel;
               });
             },
             children: const [
@@ -97,19 +128,17 @@ class _EtiquetteCardState extends State<EtiquetteCard> {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.fiber_manual_record,
-                            size: 10, color: country.accent),
+                        Icon(
+                          Icons.fiber_manual_record,
+                          size: 10,
+                          color: country.accent,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             tip,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  color: Colors.black87,
-                                  height: 1.35,
-                                ),
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: Colors.black87, height: 1.35),
                           ),
                         ),
                       ],
@@ -140,10 +169,9 @@ class _DescriptionTile extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       child: Text(
         text,
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.black87,
-              height: 1.35,
-            ),
+        style: Theme.of(
+          context,
+        ).textTheme.bodyMedium?.copyWith(color: Colors.black87, height: 1.35),
       ),
     );
   }
