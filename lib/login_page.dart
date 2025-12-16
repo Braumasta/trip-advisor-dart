@@ -16,6 +16,7 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _resetEmailController = TextEditingController();
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -27,7 +28,10 @@ class _LoginPageState extends State<LoginPage> {
 
   void _submitLogin() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    DemoAuthState.instance.signIn(_emailController.text);
+    DemoAuthState.instance.signIn(
+      _emailController.text,
+      _passwordController.text,
+    );
     Navigator.of(context).pop();
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Signed in')),
@@ -122,7 +126,7 @@ class _LoginPageState extends State<LoginPage> {
                               return 'Email is required';
                             }
                             final email = value.trim();
-                            final emailPattern = RegExp(r'.+@.+\\..+');
+                            final emailPattern = RegExp(r'.+@.+\..+');
                             if (!emailPattern.hasMatch(email)) {
                               return 'Enter a valid email (e.g. name@example.com)';
                             }
@@ -132,10 +136,20 @@ class _LoginPageState extends State<LoginPage> {
                         const SizedBox(height: 12),
                         TextFormField(
                           controller: _passwordController,
-                          obscureText: true,
-                          decoration: const InputDecoration(
+                          obscureText: _obscurePassword,
+                          decoration: InputDecoration(
                             labelText: 'Password',
-                            prefixIcon: Icon(Icons.lock_outline),
+                            prefixIcon: const Icon(Icons.lock_outline),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                              ),
+                              onPressed: () => setState(
+                                () => _obscurePassword = !_obscurePassword,
+                              ),
+                            ),
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {

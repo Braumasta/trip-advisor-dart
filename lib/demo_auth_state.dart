@@ -12,13 +12,15 @@ class DemoAuthState {
   String? lastEmail;
   String firstName = 'Traveler';
   String lastName = '';
+  String password = 'password';
   Uint8List? avatarBytes;
 
   String get displayName =>
       [firstName, lastName].where((part) => part.trim().isNotEmpty).join(' ').trim();
 
-  void signIn(String email) {
+  void signIn(String email, String password) {
     lastEmail = email.trim();
+    this.password = password;
     isSignedIn.value = true;
   }
 
@@ -37,6 +39,13 @@ class DemoAuthState {
     if (avatar != null) {
       avatarBytes = avatar;
     }
+    profileVersion.value++;
+  }
+
+  bool verifyPassword(String value) => value == password;
+
+  void updatePassword(String newPassword) {
+    password = newPassword;
     profileVersion.value++;
   }
 }
