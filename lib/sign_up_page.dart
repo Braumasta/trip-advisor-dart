@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'api_client.dart';
+import 'demo_auth_state.dart';
 import 'gradient_background.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -17,8 +19,10 @@ class _SignUpPageState extends State<SignUpPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _api = ApiClient();
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
+  bool _submitting = false;
 
   @override
   void dispose() {
@@ -33,9 +37,35 @@ class _SignUpPageState extends State<SignUpPage> {
 
   void _submit() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Account created')),
-    );
+    setState(() => _submitting = true);
+    _api
+        .register(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+          first: _firstNameController.text.trim(),
+          last: _lastNameController.text.trim(),
+        )
+        .then((user) {
+      DemoAuthState.instance.signIn(
+        email: user.email,
+        password: _passwordController.text,
+        id: user.id,
+        first: user.firstName,
+        last: user.lastName,
+        token: user.token,
+        isAdmin: user.isAdmin,
+      );
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Account created')),
+      );
+    }).catchError((error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Sign up failed: $error')),
+      );
+    }).whenComplete(() {
+      if (mounted) setState(() => _submitting = false);
+    });
   }
 
   @override
@@ -197,7 +227,13 @@ class _SignUpPageState extends State<SignUpPage> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text('Sign up'),
+                            child: _submitting
+                                ? const SizedBox(
+                                    height: 18,
+                                    width: 18,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                : const Text('Sign up'),
                           ),
                         ),
                       ],

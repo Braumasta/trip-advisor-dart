@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class CountryGuide {
   const CountryGuide({
+    this.id,
     required this.name,
     required this.description,
     required this.accent,
@@ -10,6 +11,7 @@ class CountryGuide {
     this.flagAsset,
   });
 
+  final int? id;
   final String name;
   final String description;
   final Color accent;
