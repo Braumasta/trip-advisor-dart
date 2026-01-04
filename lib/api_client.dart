@@ -173,13 +173,19 @@ class ApiClient {
       }),
     );
     _throwOnError(res);
-    final body = jsonDecode(res.body);
-    if (body is Map<String, dynamic>) {
-      final ok = body['ok'] == true;
-      if (!ok) {
-        throw Exception(body['error'] ?? 'Failed to add country');
+    try {
+      final body = jsonDecode(res.body);
+      if (body is Map<String, dynamic>) {
+        final ok = body['ok'] == true;
+        if (!ok) {
+          throw Exception(body['error'] ?? 'Failed to add country');
+        }
+        return;
       }
+    } catch (_) {
+      // fall through to generic error
     }
+    throw Exception('Failed to add country: ${res.body}');
   }
 
   Future<void> deleteCountry({required int userId, required int countryId}) async {
@@ -220,13 +226,19 @@ class ApiClient {
       }),
     );
     _throwOnError(res);
-    final body = jsonDecode(res.body);
-    if (body is Map<String, dynamic>) {
-      final ok = body['ok'] == true;
-      if (!ok) {
-        throw Exception(body['error'] ?? 'Failed to update country');
+    try {
+      final body = jsonDecode(res.body);
+      if (body is Map<String, dynamic>) {
+        final ok = body['ok'] == true;
+        if (!ok) {
+          throw Exception(body['error'] ?? 'Failed to update country');
+        }
+        return;
       }
+    } catch (_) {
+      // fall through
     }
+    throw Exception('Failed to update country: ${res.body}');
   }
 
   Future<String> uploadImage({
