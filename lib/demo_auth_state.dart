@@ -16,7 +16,8 @@ class DemoAuthState {
   String firstName = 'Traveler';
   String lastName = '';
   String password = 'password';
-  String? token;
+  String? dob;
+  String? profilePicUrl;
   bool isAdmin = false;
   Uint8List? avatarBytes;
 
@@ -25,11 +26,12 @@ class DemoAuthState {
 
   void signIn({
     required String email,
+    required int id,
     String? password,
-    int? id,
     String? first,
     String? last,
-    String? token,
+    String? dob,
+    String? profilePicUrl,
     bool isAdmin = false,
   }) {
     lastEmail = email.trim();
@@ -37,7 +39,6 @@ class DemoAuthState {
       this.password = password;
     }
     userId = id;
-    this.token = token;
     this.isAdmin = isAdmin;
     if (first != null && first.trim().isNotEmpty) {
       firstName = first.trim();
@@ -45,6 +46,8 @@ class DemoAuthState {
     if (last != null) {
       lastName = last.trim();
     }
+    this.dob = dob;
+    this.profilePicUrl = profilePicUrl;
     isSignedIn.value = true;
   }
 
@@ -52,19 +55,32 @@ class DemoAuthState {
     isSignedIn.value = false;
     lastEmail = null;
     userId = null;
-    token = null;
+    dob = null;
+    profilePicUrl = null;
     isAdmin = false;
     firstName = 'Traveler';
     lastName = '';
-    ApiClient().saveToken(null);
+    avatarBytes = null;
   }
 
-  void updateProfile({String? first, String? last, Uint8List? avatar}) {
+  void updateProfile({
+    String? first,
+    String? last,
+    Uint8List? avatar,
+    String? dob,
+    String? profilePicUrl,
+  }) {
     if (first != null && first.trim().isNotEmpty) {
       firstName = first.trim();
     }
     if (last != null) {
       lastName = last.trim();
+    }
+    if (dob != null) {
+      this.dob = dob;
+    }
+    if (profilePicUrl != null) {
+      this.profilePicUrl = profilePicUrl;
     }
     if (avatar != null) {
       avatarBytes = avatar;

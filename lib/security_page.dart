@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'api_client.dart';
 import 'demo_auth_state.dart';
 import 'gradient_background.dart';
 
@@ -15,10 +16,12 @@ class _SecurityPageState extends State<SecurityPage> {
   final _oldPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _api = ApiClient();
   bool _obscureOld = true;
   bool _obscureNew = true;
   bool _obscureConfirm = true;
   bool _verified = false;
+  bool _saving = false;
 
   @override
   void dispose() {
@@ -37,11 +40,34 @@ class _SecurityPageState extends State<SecurityPage> {
     }
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    DemoAuthState.instance.updatePassword(_newPasswordController.text);
-    Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Password updated')),
-    );
+    final userId = DemoAuthState.instance.userId;
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sign in first')),
+      );
+      return;
+    }
+
+    setState(() => _saving = true);
+    _api
+        .changePassword(
+          userId: userId,
+          currentPassword: _oldPasswordController.text,
+          newPassword: _newPasswordController.text,
+        )
+        .then((_) {
+      DemoAuthState.instance.updatePassword(_newPasswordController.text);
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password updated')),
+      );
+    }).catchError((error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Update failed: $error')),
+      );
+    }).whenComplete(() {
+      if (mounted) setState(() => _saving = false);
+    });
   }
 
   void _verifyCurrent() {
@@ -187,13 +213,19 @@ class _SecurityPageState extends State<SecurityPage> {
                               onPressed: _save,
                               style: ElevatedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(vertical: 14),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                              child: const Text('Update password'),
                             ),
+                            child: _saving
+                                ? const SizedBox(
+                                    height: 18,
+                                    width: 18,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                : const Text('Update password'),
                           ),
+                        ),
                         ],
                       ],
                     ),

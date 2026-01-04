@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 
 import 'about_us_page.dart';
 import 'account_details_page.dart';
+import 'add_country_page.dart';
+import 'delete_country_page.dart';
 import 'contact_page.dart';
 import 'demo_auth_state.dart';
 import 'gradient_background.dart';
 import 'login_page.dart';
 import 'security_page.dart';
+import 'api_client.dart';
 
 class AccountPage extends StatelessWidget {
   const AccountPage({super.key});
@@ -20,6 +23,7 @@ class AccountPage extends StatelessWidget {
   void _confirmDelete(BuildContext context) {
     final controller = TextEditingController();
     final messenger = ScaffoldMessenger.of(context);
+    final api = ApiClient();
     showDialog<void>(
       context: context,
       builder: (dialogContext) {
@@ -56,6 +60,11 @@ class AccountPage extends StatelessWidget {
                   ),
                   onPressed: canDelete
                       ? () {
+                          api.deleteAccount().catchError((error) {
+                            messenger.showSnackBar(
+                              SnackBar(content: Text('Delete failed: $error')),
+                            );
+                          });
                           Navigator.of(dialogContext).pop();
                           DemoAuthState.instance.signOut();
                           messenger.showSnackBar(
@@ -98,18 +107,23 @@ class AccountPage extends StatelessWidget {
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
-                        CircleAvatar(
-                          radius: 36,
-                          backgroundColor: Colors.grey.shade200,
-                          backgroundImage: auth.avatarBytes != null
-                              ? MemoryImage(auth.avatarBytes!)
-                              : null,
-                          child: auth.avatarBytes == null
-                              ? const Icon(
-                                  Icons.person_outline,
-                                  size: 42,
-                                  color: Colors.black87,
-                                )
+                      CircleAvatar(
+                        radius: 36,
+                        backgroundColor: Colors.grey.shade200,
+                        backgroundImage: auth.profilePicUrl != null &&
+                                auth.profilePicUrl!.trim().isNotEmpty
+                            ? NetworkImage(auth.profilePicUrl!.trim())
+                            : (auth.avatarBytes != null
+                                ? MemoryImage(auth.avatarBytes!)
+                                : null),
+                        child: (auth.avatarBytes == null &&
+                                (auth.profilePicUrl == null ||
+                                    auth.profilePicUrl!.trim().isEmpty))
+                            ? const Icon(
+                                Icons.person_outline,
+                                size: 42,
+                                color: Colors.black87,
+                              )
                               : null,
                         ),
                         const SizedBox(height: 12),
@@ -193,6 +207,36 @@ class AccountPage extends StatelessWidget {
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () => _openPage(context, const SecurityPage()),
                         ),
+                        if (auth.isAdmin) ...[
+                          const Divider(height: 1),
+                          ListTile(
+                            leading:
+                                const Icon(Icons.add_location_alt_outlined, color: Colors.black87),
+                            title: const Text('Add country'),
+                            subtitle: const Text('Admin only'),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () => _openPage(context, const AddCountryPage()),
+                          ),
+                          const Divider(height: 1),
+                          ListTile(
+                            leading: const Icon(Icons.delete_outline, color: Colors.black87),
+                            title: const Text('Delete country'),
+                            subtitle: const Text('Admin only'),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () {
+                              if (auth.userId == null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Sign in first')),
+                                );
+                                return;
+                              }
+                              _openPage(
+                                context,
+                                DeleteCountryPage(userId: auth.userId!),
+                              );
+                            },
+                          ),
+                        ],
                         const Divider(height: 1),
                         ListTile(
                           leading: const Icon(Icons.delete_outline, color: Colors.red),

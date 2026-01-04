@@ -1,8 +1,6 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'models.dart';
 
 const _baseUrl = 'http://mobcrud.atwebpages.com/api';
@@ -12,20 +10,6 @@ class ApiClient {
 
   final http.Client _client;
 
-  Future<void> saveToken(String? token) async {
-    final prefs = await SharedPreferences.getInstance();
-    if (token == null || token.isEmpty) {
-      await prefs.remove('auth_token');
-    } else {
-      await prefs.setString('auth_token', token);
-    }
-  }
-
-  Future<String?> loadToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('auth_token');
-  }
-
   Future<User> login(String email, String password) async {
     final res = await _client.post(
       Uri.parse('$_baseUrl/login.php'),
@@ -34,9 +18,7 @@ class ApiClient {
     );
     _throwOnError(res);
     final data = jsonDecode(res.body) as Map<String, dynamic>;
-    final token = data['token'] as String?;
-    if (token != null) await saveToken(token);
-    return User.fromJson(data['user'] as Map<String, dynamic>, token: token);
+    return User.fromJson(data['user'] as Map<String, dynamic>);
   }
 
   Future<User> register({
@@ -44,6 +26,7 @@ class ApiClient {
     required String password,
     String first = '',
     String last = '',
+    String dob = '',
   }) async {
     final res = await _client.post(
       Uri.parse('$_baseUrl/register.php'),
@@ -53,13 +36,12 @@ class ApiClient {
         'password': password,
         'first_name': first,
         'last_name': last,
+        if (dob.isNotEmpty) 'dob': dob,
       }),
     );
     _throwOnError(res);
     final data = jsonDecode(res.body) as Map<String, dynamic>;
-    final token = data['token'] as String?;
-    if (token != null) await saveToken(token);
-    return User.fromJson(data['user'] as Map<String, dynamic>, token: token);
+    return User.fromJson(data['user'] as Map<String, dynamic>);
   }
 
   Future<List<Country>> fetchCountries() async {
@@ -82,11 +64,9 @@ class ApiClient {
     return tips.map((e) => Tip.fromJson(e as Map<String, dynamic>)).toList();
   }
 
-  Future<List<Country>> fetchFavorites() async {
-    final token = await loadToken();
+  Future<List<Country>> fetchFavorites(int userId) async {
     final res = await _client.get(
-      Uri.parse('$_baseUrl/favorites.php'),
-      headers: _authHeaders(token),
+      Uri.parse('$_baseUrl/favorites.php?user_id=$userId'),
     );
     _throwOnError(res);
     final data = jsonDecode(res.body) as Map<String, dynamic>;
@@ -96,44 +76,112 @@ class ApiClient {
         .toList();
   }
 
-  Future<void> addFavorite(int countryId) async {
-    final token = await loadToken();
+  Future<void> addFavorite({required int userId, required int countryId}) async {
     final res = await _client.post(
       Uri.parse('$_baseUrl/favorites.php'),
-      headers: _authHeaders(token),
-      body: jsonEncode({'country_id': countryId}),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'user_id': userId, 'country_id': countryId}),
     );
     _throwOnError(res);
   }
 
-  Future<void> removeFavorite(int countryId) async {
-    final token = await loadToken();
+  Future<void> removeFavorite({required int userId, required int countryId}) async {
     final request = http.Request(
       'DELETE',
       Uri.parse('$_baseUrl/favorites.php'),
     )
-      ..headers.addAll(_authHeaders(token))
-      ..body = jsonEncode({'country_id': countryId});
+      ..headers.addAll({'Content-Type': 'application/json'})
+      ..body = jsonEncode({'user_id': userId, 'country_id': countryId});
     final streamed = await _client.send(request);
     final res = await http.Response.fromStream(streamed);
     _throwOnError(res);
   }
 
-  Future<void> updateProfilePicUrl(String url) async {
-    final token = await loadToken();
+  Future<User> updateProfile({
+    required int userId,
+    String? firstName,
+    String? lastName,
+    String? dob,
+    String? profilePicUrl,
+  }) async {
     final res = await _client.post(
-      Uri.parse('$_baseUrl/profile_picture.php'),
-      headers: _authHeaders(token),
-      body: jsonEncode({'profile_pic_url': url}),
+      Uri.parse('$_baseUrl/update_profile.php'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'user_id': userId,
+        if (firstName != null) 'first_name': firstName,
+        if (lastName != null) 'last_name': lastName,
+        if (dob != null) 'dob': dob,
+        if (profilePicUrl != null) 'profile_pic_url': profilePicUrl,
+      }),
+    );
+    _throwOnError(res);
+    final data = jsonDecode(res.body) as Map<String, dynamic>;
+    return User.fromJson(data['user'] as Map<String, dynamic>);
+  }
+
+  Future<void> changePassword({
+    required int userId,
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final res = await _client.post(
+      Uri.parse('$_baseUrl/change_password.php'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'user_id': userId,
+        'current_password': currentPassword,
+        'new_password': newPassword,
+      }),
     );
     _throwOnError(res);
   }
 
-  Map<String, String> _authHeaders(String? token) {
-    return {
-      'Content-Type': 'application/json',
-      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
-    };
+  Future<void> deleteAccount(int userId) async {
+    final res = await _client.send(http.Request(
+      'DELETE',
+      Uri.parse('$_baseUrl/delete_account.php'),
+    )
+      ..headers.addAll({'Content-Type': 'application/json'})
+      ..body = jsonEncode({'user_id': userId}));
+    final full = await http.Response.fromStream(res);
+    _throwOnError(full);
+  }
+
+  Future<void> addCountry({
+    required int userId,
+    required String name,
+    required String description,
+    required String flagAsset,
+    required String accentHex,
+    required List<String> etiquetteTips,
+    required List<String> travelTips,
+  }) async {
+    final res = await _client.post(
+      Uri.parse('$_baseUrl/add_country.php'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'user_id': userId,
+        'name': name,
+        'description': description,
+        'flag_asset': flagAsset,
+        'accent_hex': accentHex,
+        'etiquette_tips': etiquetteTips,
+        'travel_tips': travelTips,
+      }),
+    );
+    _throwOnError(res);
+  }
+
+  Future<void> deleteCountry({required int userId, required int countryId}) async {
+    final res = await _client.send(http.Request(
+      'DELETE',
+      Uri.parse('$_baseUrl/delete_country.php'),
+    )
+      ..headers.addAll({'Content-Type': 'application/json'})
+      ..body = jsonEncode({'user_id': userId, 'country_id': countryId}));
+    final full = await http.Response.fromStream(res);
+    _throwOnError(full);
   }
 
   void _throwOnError(http.Response res) {

@@ -44,6 +44,8 @@ class _SignUpPageState extends State<SignUpPage> {
           password: _passwordController.text,
           first: _firstNameController.text.trim(),
           last: _lastNameController.text.trim(),
+          // API currently expects dob as string (e.g., DD/MM/YYYY or ISO).
+          dob: _dobController.text.trim(),
         )
         .then((user) {
       DemoAuthState.instance.signIn(
@@ -52,7 +54,8 @@ class _SignUpPageState extends State<SignUpPage> {
         id: user.id,
         first: user.firstName,
         last: user.lastName,
-        token: user.token,
+        dob: user.dob ?? _dobController.text.trim(),
+        profilePicUrl: user.profilePicUrl,
         isAdmin: user.isAdmin,
       );
       Navigator.of(context).pop();

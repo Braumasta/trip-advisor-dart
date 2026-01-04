@@ -6,6 +6,7 @@ class User {
     required this.lastName,
     required this.isAdmin,
     this.token,
+    this.profilePicUrl,
     this.dob,
   });
 
@@ -15,6 +16,7 @@ class User {
   final String lastName;
   final bool isAdmin;
   final String? token;
+  final String? profilePicUrl;
   final String? dob;
 
   factory User.fromJson(Map<String, dynamic> json, {String? token}) {
@@ -24,6 +26,7 @@ class User {
       firstName: (json['first_name'] ?? '') as String,
       lastName: (json['last_name'] ?? '') as String,
       isAdmin: (json['is_admin'] ?? 0) == 1,
+      profilePicUrl: json['profile_pic_url'] as String?,
       dob: json['dob'] as String?,
       token: token,
     );

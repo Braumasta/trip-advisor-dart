@@ -41,7 +41,8 @@ class _LoginPageState extends State<LoginPage> {
         id: user.id,
         first: user.firstName,
         last: user.lastName,
-        token: user.token,
+        dob: user.dob,
+        profilePicUrl: user.profilePicUrl,
         isAdmin: user.isAdmin,
       );
       Navigator.of(context).pop();

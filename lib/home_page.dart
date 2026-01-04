@@ -25,11 +25,27 @@ class _EtiquetteHomePageState extends State<EtiquetteHomePage> {
   List<CountryGuide> _countries = [];
   String _searchQuery = '';
   String? _expandedCountryName;
+  late final VoidCallback _authListener;
 
   @override
   void initState() {
     super.initState();
+    _authListener = () {
+      if (!DemoAuthState.instance.isSignedIn.value) {
+        setState(() {
+          _favoriteCountryIds.clear();
+        });
+      }
+      _loadData();
+    };
+    DemoAuthState.instance.isSignedIn.addListener(_authListener);
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    DemoAuthState.instance.isSignedIn.removeListener(_authListener);
+    super.dispose();
   }
 
   List<CountryGuide> get _favoriteCountries => _countries
@@ -76,11 +92,14 @@ class _EtiquetteHomePageState extends State<EtiquetteHomePage> {
         );
       }
       Set<int> favoriteIds = {};
-      try {
-        final favorites = await _api.fetchFavorites();
-        favoriteIds = favorites.map((f) => f.id).toSet();
-      } catch (_) {
-        // ignore favorites load errors (likely unauthenticated)
+      final auth = DemoAuthState.instance;
+      if (auth.isSignedIn.value && auth.userId != null) {
+        try {
+          final favorites = await _api.fetchFavorites(auth.userId!);
+          favoriteIds = favorites.map((f) => f.id).toSet();
+        } catch (_) {
+          // ignore favorites load errors (likely unauthenticated)
+        }
       }
       if (!mounted) return;
       setState(() {
@@ -102,7 +121,7 @@ class _EtiquetteHomePageState extends State<EtiquetteHomePage> {
   Future<void> _toggleFavorite(CountryGuide country) async {
     if (country.id == null) return;
     final auth = DemoAuthState.instance;
-    if (!auth.isSignedIn.value) {
+    if (!auth.isSignedIn.value || auth.userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Sign in to save favorites')),
       );
@@ -118,9 +137,9 @@ class _EtiquetteHomePageState extends State<EtiquetteHomePage> {
     });
     try {
       if (isFav) {
-        await _api.removeFavorite(country.id!);
+        await _api.removeFavorite(userId: auth.userId!, countryId: country.id!);
       } else {
-        await _api.addFavorite(country.id!);
+        await _api.addFavorite(userId: auth.userId!, countryId: country.id!);
       }
     } catch (e) {
       setState(() {

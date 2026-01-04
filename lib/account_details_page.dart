@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'api_client.dart';
 import 'demo_auth_state.dart';
 import 'gradient_background.dart';
 
@@ -19,8 +20,14 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
       TextEditingController(text: DemoAuthState.instance.firstName);
   late final TextEditingController _lastNameController =
       TextEditingController(text: DemoAuthState.instance.lastName);
+  late final TextEditingController _dobController =
+      TextEditingController(text: DemoAuthState.instance.dob ?? '');
+  late final TextEditingController _profilePicController =
+      TextEditingController(text: DemoAuthState.instance.profilePicUrl ?? '');
   Uint8List? _avatarBytes = DemoAuthState.instance.avatarBytes;
   bool _picking = false;
+  bool _saving = false;
+  final _api = ApiClient();
 
   final ImagePicker _picker = ImagePicker();
 
@@ -28,20 +35,52 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
+    _dobController.dispose();
+    _profilePicController.dispose();
     super.dispose();
   }
 
   void _save() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    DemoAuthState.instance.updateProfile(
-      first: _firstNameController.text,
-      last: _lastNameController.text,
-      avatar: _avatarBytes,
-    );
-    Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Profile updated')),
-    );
+    setState(() => _saving = true);
+    final auth = DemoAuthState.instance;
+    final userId = auth.userId;
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sign in first')),
+      );
+      setState(() => _saving = false);
+      return;
+    }
+    _api
+        .updateProfile(
+          userId: userId,
+          firstName: _firstNameController.text.trim(),
+          lastName: _lastNameController.text.trim(),
+          dob: _dobController.text.trim(),
+          profilePicUrl: _profilePicController.text.trim().isNotEmpty
+              ? _profilePicController.text.trim()
+              : null,
+        )
+        .then((user) {
+      DemoAuthState.instance.updateProfile(
+        first: user.firstName,
+        last: user.lastName,
+        dob: user.dob ?? _dobController.text.trim(),
+        profilePicUrl: user.profilePicUrl ?? _profilePicController.text.trim(),
+        avatar: _avatarBytes,
+      );
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Profile updated')),
+      );
+    }).catchError((error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Update failed: $error')),
+      );
+    }).whenComplete(() {
+      if (mounted) setState(() => _saving = false);
+    });
   }
 
   Future<void> _pickImage() async {
@@ -90,9 +129,11 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
                         child: CircleAvatar(
                           radius: 42,
                           backgroundColor: const Color(0xFFE0E0E0),
-                          backgroundImage:
-                              _avatarBytes != null ? MemoryImage(_avatarBytes!) : null,
-                          child: _avatarBytes == null
+                          backgroundImage: _profilePicController.text.trim().isNotEmpty
+                              ? NetworkImage(_profilePicController.text.trim())
+                              : (_avatarBytes != null ? MemoryImage(_avatarBytes!) : null),
+                          child: _avatarBytes == null &&
+                                  _profilePicController.text.trim().isEmpty
                               ? const Icon(
                                   Icons.person_outline,
                                   size: 42,
@@ -149,6 +190,24 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
                                 prefixIcon: Icon(Icons.person_outline),
                               ),
                             ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _dobController,
+                              decoration: const InputDecoration(
+                                labelText: 'Date of birth',
+                                hintText: 'YYYY-MM-DD',
+                                prefixIcon: Icon(Icons.calendar_today_outlined),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _profilePicController,
+                              decoration: const InputDecoration(
+                                labelText: 'Profile picture URL',
+                                hintText: 'http://...',
+                                prefixIcon: Icon(Icons.link),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -163,7 +222,13 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: const Text('Save'),
+                          child: _saving
+                              ? const SizedBox(
+                                  height: 18,
+                                  width: 18,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Text('Save'),
                         ),
                       ),
                     ],
