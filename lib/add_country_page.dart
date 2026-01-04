@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'api_client.dart';
 import 'demo_auth_state.dart';
@@ -15,26 +16,41 @@ class _AddCountryPageState extends State<AddCountryPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _flagController = TextEditingController();
   final _accentController = TextEditingController(text: '2196F3');
   final _etiquetteController = TextEditingController();
   final _travelController = TextEditingController();
   final _api = ApiClient();
   bool _saving = false;
+  XFile? _flagFile;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void dispose() {
     _nameController.dispose();
     _descriptionController.dispose();
-    _flagController.dispose();
     _accentController.dispose();
     _etiquetteController.dispose();
     _travelController.dispose();
     super.dispose();
   }
 
+  Future<void> _pickFlag() async {
+    final file = await _picker.pickImage(source: ImageSource.gallery, maxWidth: 800);
+    if (file != null) {
+      setState(() {
+        _flagFile = file;
+      });
+    }
+  }
+
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
+    if (_flagFile == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please upload a flag image')),
+      );
+      return;
+    }
     setState(() => _saving = true);
     final userId = DemoAuthState.instance.userId;
     if (userId == null) {
@@ -55,17 +71,23 @@ class _AddCountryPageState extends State<AddCountryPage> {
         .where((e) => e.isNotEmpty)
         .toList();
     try {
+      final flagBytes = await _flagFile!.readAsBytes();
+      final flagUrl = await _api.uploadImage(
+        target: 'flag',
+        bytes: flagBytes,
+        filename: _flagFile!.name,
+      );
       await _api.addCountry(
         userId: userId,
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
-        flagAsset: _flagController.text.trim(),
+        flagAsset: flagUrl,
         accentHex: _accentController.text.trim().replaceAll('#', ''),
         etiquetteTips: etiquetteTips,
         travelTips: travelTips,
       );
       if (!mounted) return;
-      Navigator.of(context).pop();
+      Navigator.of(context).pop(true);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Country added')),
       );
@@ -121,14 +143,15 @@ class _AddCountryPageState extends State<AddCountryPage> {
                               v == null || v.trim().isEmpty ? 'Required' : null,
                         ),
                         const SizedBox(height: 12),
-                        TextFormField(
-                          controller: _flagController,
-                          decoration: const InputDecoration(
-                            labelText: 'Flag image URL/path',
-                            prefixIcon: Icon(Icons.image_outlined),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: ElevatedButton.icon(
+                            onPressed: _saving ? null : _pickFlag,
+                            icon: const Icon(Icons.upload_file_outlined),
+                            label: Text(_flagFile == null
+                                ? 'Upload flag image'
+                                : 'Flag selected: ${_flagFile!.name}'),
                           ),
-                          validator: (v) =>
-                              v == null || v.trim().isEmpty ? 'Required' : null,
                         ),
                         const SizedBox(height: 12),
                         TextFormField(

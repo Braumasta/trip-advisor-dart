@@ -22,9 +22,8 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
       TextEditingController(text: DemoAuthState.instance.lastName);
   late final TextEditingController _dobController =
       TextEditingController(text: DemoAuthState.instance.dob ?? '');
-  late final TextEditingController _profilePicController =
-      TextEditingController(text: DemoAuthState.instance.profilePicUrl ?? '');
   Uint8List? _avatarBytes = DemoAuthState.instance.avatarBytes;
+  String? _uploadedProfileUrl = DemoAuthState.instance.profilePicUrl;
   bool _picking = false;
   bool _saving = false;
   final _api = ApiClient();
@@ -36,7 +35,6 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
     _firstNameController.dispose();
     _lastNameController.dispose();
     _dobController.dispose();
-    _profilePicController.dispose();
     super.dispose();
   }
 
@@ -58,16 +56,14 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
           firstName: _firstNameController.text.trim(),
           lastName: _lastNameController.text.trim(),
           dob: _dobController.text.trim(),
-          profilePicUrl: _profilePicController.text.trim().isNotEmpty
-              ? _profilePicController.text.trim()
-              : null,
+          profilePicUrl: _uploadedProfileUrl,
         )
         .then((user) {
       DemoAuthState.instance.updateProfile(
         first: user.firstName,
         last: user.lastName,
         dob: user.dob ?? _dobController.text.trim(),
-        profilePicUrl: user.profilePicUrl ?? _profilePicController.text.trim(),
+        profilePicUrl: _uploadedProfileUrl ?? user.profilePicUrl,
         avatar: _avatarBytes,
       );
       Navigator.of(context).pop();
@@ -91,8 +87,14 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
           await _picker.pickImage(source: ImageSource.gallery, maxWidth: 600);
       if (file != null) {
         final bytes = await file.readAsBytes();
+        final url = await _api.uploadImage(
+          target: 'pfp',
+          bytes: bytes,
+          filename: file.name,
+        );
         setState(() {
           _avatarBytes = bytes;
+          _uploadedProfileUrl = url;
         });
       }
     } catch (_) {
@@ -129,11 +131,13 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
                         child: CircleAvatar(
                           radius: 42,
                           backgroundColor: const Color(0xFFE0E0E0),
-                          backgroundImage: _profilePicController.text.trim().isNotEmpty
-                              ? NetworkImage(_profilePicController.text.trim())
+                          backgroundImage: _uploadedProfileUrl != null &&
+                                  _uploadedProfileUrl!.trim().isNotEmpty
+                              ? NetworkImage(_uploadedProfileUrl!.trim())
                               : (_avatarBytes != null ? MemoryImage(_avatarBytes!) : null),
                           child: _avatarBytes == null &&
-                                  _profilePicController.text.trim().isEmpty
+                                  (_uploadedProfileUrl == null ||
+                                      _uploadedProfileUrl!.trim().isEmpty)
                               ? const Icon(
                                   Icons.person_outline,
                                   size: 42,
@@ -195,17 +199,8 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
                               controller: _dobController,
                               decoration: const InputDecoration(
                                 labelText: 'Date of birth',
-                                hintText: 'YYYY-MM-DD',
+                                hintText: 'DD/MM/YY',
                                 prefixIcon: Icon(Icons.calendar_today_outlined),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            TextFormField(
-                              controller: _profilePicController,
-                              decoration: const InputDecoration(
-                                labelText: 'Profile picture URL',
-                                hintText: 'http://...',
-                                prefixIcon: Icon(Icons.link),
                               ),
                             ),
                           ],

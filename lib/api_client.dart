@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 import 'models.dart';
@@ -182,6 +183,51 @@ class ApiClient {
       ..body = jsonEncode({'user_id': userId, 'country_id': countryId}));
     final full = await http.Response.fromStream(res);
     _throwOnError(full);
+  }
+
+  Future<void> updateCountry({
+    required int userId,
+    required int countryId,
+    String? name,
+    String? description,
+    String? flagAsset,
+    String? accentHex,
+    List<String>? etiquetteTips,
+    List<String>? travelTips,
+  }) async {
+    final res = await _client.post(
+      Uri.parse('$_baseUrl/update_country.php'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'user_id': userId,
+        'country_id': countryId,
+        if (name != null) 'name': name,
+        if (description != null) 'description': description,
+        if (flagAsset != null) 'flag_asset': flagAsset,
+        if (accentHex != null) 'accent_hex': accentHex,
+        if (etiquetteTips != null) 'etiquette_tips': etiquetteTips,
+        if (travelTips != null) 'travel_tips': travelTips,
+      }),
+    );
+    _throwOnError(res);
+  }
+
+  Future<String> uploadImage({
+    required String target, // 'flag' or 'pfp'
+    required Uint8List bytes,
+    required String filename,
+  }) async {
+    final uri = Uri.parse('$_baseUrl/upload_image.php');
+    final request = http.MultipartRequest('POST', uri)
+      ..fields['target'] = target
+      ..files.add(http.MultipartFile.fromBytes('file', bytes, filename: filename));
+    final streamed = await _client.send(request);
+    final res = await http.Response.fromStream(streamed);
+    _throwOnError(res);
+    final data = jsonDecode(res.body) as Map<String, dynamic>;
+    final url = data['url'] as String?;
+    if (url == null || url.isEmpty) throw Exception('upload failed');
+    return url;
   }
 
   void _throwOnError(http.Response res) {

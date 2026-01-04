@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'about_us_page.dart';
 import 'account_details_page.dart';
 import 'add_country_page.dart';
-import 'delete_country_page.dart';
+import 'delete_edit_country_page.dart';
 import 'contact_page.dart';
 import 'demo_auth_state.dart';
 import 'gradient_background.dart';
@@ -24,6 +24,13 @@ class AccountPage extends StatelessWidget {
     final controller = TextEditingController();
     final messenger = ScaffoldMessenger.of(context);
     final api = ApiClient();
+    final userId = DemoAuthState.instance.userId;
+    if (userId == null) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Sign in first')),
+      );
+      return;
+    }
     showDialog<void>(
       context: context,
       builder: (dialogContext) {
@@ -60,7 +67,7 @@ class AccountPage extends StatelessWidget {
                   ),
                   onPressed: canDelete
                       ? () {
-                          api.deleteAccount().catchError((error) {
+                          api.deleteAccount(userId).catchError((error) {
                             messenger.showSnackBar(
                               SnackBar(content: Text('Delete failed: $error')),
                             );
@@ -220,22 +227,22 @@ class AccountPage extends StatelessWidget {
                           const Divider(height: 1),
                           ListTile(
                             leading: const Icon(Icons.delete_outline, color: Colors.black87),
-                            title: const Text('Delete country'),
+                            title: const Text('Edit/Delete country'),
                             subtitle: const Text('Admin only'),
                             trailing: const Icon(Icons.chevron_right),
                             onTap: () {
                               if (auth.userId == null) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Sign in first')),
-                                );
-                                return;
-                              }
-                              _openPage(
-                                context,
-                                DeleteCountryPage(userId: auth.userId!),
+                                const SnackBar(content: Text('Sign in first')),
                               );
-                            },
-                          ),
+                              return;
+                            }
+                            _openPage(
+                              context,
+                              const DeleteEditCountryPage(),
+                            );
+                          },
+                        ),
                         ],
                         const Divider(height: 1),
                         ListTile(
