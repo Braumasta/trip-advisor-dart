@@ -158,6 +158,7 @@ class ApiClient {
     required List<String> etiquetteTips,
     required List<String> travelTips,
   }) async {
+    final cleanedAccent = accentHex.replaceAll('#', '').toUpperCase();
     final res = await _client.post(
       Uri.parse('$_baseUrl/add_country.php'),
       headers: {'Content-Type': 'application/json'},
@@ -166,12 +167,19 @@ class ApiClient {
         'name': name,
         'description': description,
         'flag_asset': flagAsset,
-        'accent_hex': accentHex,
+        'accent_hex': cleanedAccent,
         'etiquette_tips': etiquetteTips,
         'travel_tips': travelTips,
       }),
     );
     _throwOnError(res);
+    final body = jsonDecode(res.body);
+    if (body is Map<String, dynamic>) {
+      final ok = body['ok'] == true;
+      if (!ok) {
+        throw Exception(body['error'] ?? 'Failed to add country');
+      }
+    }
   }
 
   Future<void> deleteCountry({required int userId, required int countryId}) async {
@@ -195,6 +203,8 @@ class ApiClient {
     List<String>? etiquetteTips,
     List<String>? travelTips,
   }) async {
+    final cleanedAccent =
+        accentHex != null ? accentHex.replaceAll('#', '').toUpperCase() : null;
     final res = await _client.post(
       Uri.parse('$_baseUrl/update_country.php'),
       headers: {'Content-Type': 'application/json'},
@@ -204,12 +214,19 @@ class ApiClient {
         if (name != null) 'name': name,
         if (description != null) 'description': description,
         if (flagAsset != null) 'flag_asset': flagAsset,
-        if (accentHex != null) 'accent_hex': accentHex,
+        if (cleanedAccent != null) 'accent_hex': cleanedAccent,
         if (etiquetteTips != null) 'etiquette_tips': etiquetteTips,
         if (travelTips != null) 'travel_tips': travelTips,
       }),
     );
     _throwOnError(res);
+    final body = jsonDecode(res.body);
+    if (body is Map<String, dynamic>) {
+      final ok = body['ok'] == true;
+      if (!ok) {
+        throw Exception(body['error'] ?? 'Failed to update country');
+      }
+    }
   }
 
   Future<String> uploadImage({

@@ -24,6 +24,22 @@ class _SignUpPageState extends State<SignUpPage> {
   bool _obscureConfirm = true;
   bool _submitting = false;
 
+  String _normalizeDob(String input) {
+    final cleaned = input.trim();
+    if (cleaned.isEmpty) return '';
+    final parts =
+        cleaned.replaceAll('-', '/').replaceAll('.', '/').split('/');
+    if (parts.length < 3) return cleaned;
+    final day = parts[0].padLeft(2, '0');
+    final month = parts[1].padLeft(2, '0');
+    var year = parts[2];
+    if (year.length == 2) {
+      year = year.startsWith('9') ? '19$year' : '20$year';
+    }
+    if (year.length != 4) return cleaned;
+    return '$year-$month-$day';
+  }
+
   @override
   void dispose() {
     _firstNameController.dispose();
@@ -38,14 +54,14 @@ class _SignUpPageState extends State<SignUpPage> {
   void _submit() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     setState(() => _submitting = true);
+    final dobIso = _normalizeDob(_dobController.text);
     _api
         .register(
           email: _emailController.text.trim(),
           password: _passwordController.text,
           first: _firstNameController.text.trim(),
           last: _lastNameController.text.trim(),
-          // API currently expects dob as string (e.g., DD/MM/YYYY or ISO).
-          dob: _dobController.text.trim(),
+          dob: dobIso,
         )
         .then((user) {
       DemoAuthState.instance.signIn(
@@ -54,7 +70,7 @@ class _SignUpPageState extends State<SignUpPage> {
         id: user.id,
         first: user.firstName,
         last: user.lastName,
-        dob: user.dob ?? _dobController.text.trim(),
+        dob: user.dob ?? dobIso,
         profilePicUrl: user.profilePicUrl,
         isAdmin: user.isAdmin,
       );

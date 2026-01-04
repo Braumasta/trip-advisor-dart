@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 
 import 'api_client.dart';
 import 'demo_auth_state.dart';
@@ -23,18 +22,42 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
   late final TextEditingController _dobController =
       TextEditingController(text: DemoAuthState.instance.dob ?? '');
   Uint8List? _avatarBytes = DemoAuthState.instance.avatarBytes;
-  String? _uploadedProfileUrl = DemoAuthState.instance.profilePicUrl;
-  bool _picking = false;
+  late final TextEditingController _profileUrlController =
+      TextEditingController(text: DemoAuthState.instance.profilePicUrl ?? '');
   bool _saving = false;
   final _api = ApiClient();
 
-  final ImagePicker _picker = ImagePicker();
+  String _normalizeDob(String input) {
+    final cleaned = input.trim();
+    if (cleaned.isEmpty) return '';
+    final parts =
+        cleaned.replaceAll('-', '/').replaceAll('.', '/').split('/');
+    if (parts.length < 3) return cleaned;
+    final day = parts[0].padLeft(2, '0');
+    final month = parts[1].padLeft(2, '0');
+    var year = parts[2];
+    if (year.length == 2) {
+      year = year.startsWith('9') ? '19$year' : '20$year';
+    }
+    if (year.length != 4) return cleaned;
+    return '$year-$month-$day';
+  }
+
+  String? _normalizeProfileUrl(String? raw) {
+    if (raw == null) return null;
+    final trimmed = raw.trim();
+    if (trimmed.isEmpty) return null;
+    return trimmed.startsWith('http')
+        ? trimmed
+        : 'http://mobcrud.atwebpages.com/api/uploads/${trimmed.replaceFirst(RegExp(r'^/+'), '')}';
+  }
 
   @override
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
     _dobController.dispose();
+    _profileUrlController.dispose();
     super.dispose();
   }
 
@@ -55,15 +78,16 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
           userId: userId,
           firstName: _firstNameController.text.trim(),
           lastName: _lastNameController.text.trim(),
-          dob: _dobController.text.trim(),
-          profilePicUrl: _uploadedProfileUrl,
+          dob: _normalizeDob(_dobController.text),
+          profilePicUrl: _normalizeProfileUrl(_profileUrlController.text),
         )
         .then((user) {
       DemoAuthState.instance.updateProfile(
         first: user.firstName,
         last: user.lastName,
-        dob: user.dob ?? _dobController.text.trim(),
-        profilePicUrl: _uploadedProfileUrl ?? user.profilePicUrl,
+        dob: user.dob ?? _normalizeDob(_dobController.text),
+        profilePicUrl:
+            _normalizeProfileUrl(_profileUrlController.text) ?? user.profilePicUrl,
         avatar: _avatarBytes,
       );
       Navigator.of(context).pop();
@@ -79,37 +103,9 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
     });
   }
 
-  Future<void> _pickImage() async {
-    if (_picking) return;
-    setState(() => _picking = true);
-    try {
-      final XFile? file =
-          await _picker.pickImage(source: ImageSource.gallery, maxWidth: 600);
-      if (file != null) {
-        final bytes = await file.readAsBytes();
-        final url = await _api.uploadImage(
-          target: 'pfp',
-          bytes: bytes,
-          filename: file.name,
-        );
-        setState(() {
-          _avatarBytes = bytes;
-          _uploadedProfileUrl = url;
-        });
-      }
-    } catch (_) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to pick image right now')),
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _picking = false);
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    final networkUrl = _normalizeProfileUrl(_profileUrlController.text);
     return Scaffold(
       appBar: AppBar(title: const Text('Account details')),
       body: GradientBackground(
@@ -131,33 +127,16 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
                         child: CircleAvatar(
                           radius: 42,
                           backgroundColor: const Color(0xFFE0E0E0),
-                          backgroundImage: _uploadedProfileUrl != null &&
-                                  _uploadedProfileUrl!.trim().isNotEmpty
-                              ? NetworkImage(_uploadedProfileUrl!.trim())
-                              : (_avatarBytes != null ? MemoryImage(_avatarBytes!) : null),
-                          child: _avatarBytes == null &&
-                                  (_uploadedProfileUrl == null ||
-                                      _uploadedProfileUrl!.trim().isEmpty)
+                          backgroundImage: _avatarBytes != null
+                              ? MemoryImage(_avatarBytes!)
+                              : (networkUrl != null ? NetworkImage(networkUrl) : null),
+                          child: _avatarBytes == null && networkUrl == null
                               ? const Icon(
                                   Icons.person_outline,
                                   size: 42,
                                   color: Colors.black87,
                                 )
                               : null,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Center(
-                        child: TextButton.icon(
-                          onPressed: _pickImage,
-                          icon: _picking
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : const Icon(Icons.upload_file_outlined),
-                          label: const Text('Upload image'),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -201,6 +180,15 @@ class _AccountDetailsPageState extends State<AccountDetailsPage> {
                                 labelText: 'Date of birth',
                                 hintText: 'DD/MM/YY',
                                 prefixIcon: Icon(Icons.calendar_today_outlined),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _profileUrlController,
+                              decoration: const InputDecoration(
+                                labelText: 'Profile picture URL',
+                                hintText: 'http://...',
+                                prefixIcon: Icon(Icons.link),
                               ),
                             ),
                           ],

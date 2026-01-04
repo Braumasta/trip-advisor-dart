@@ -7,7 +7,6 @@ import 'demo_auth_state.dart';
 import 'etiquette_card.dart';
 import 'favorites_page.dart';
 import 'gradient_background.dart';
-import 'models.dart';
 
 class EtiquetteHomePage extends StatefulWidget {
   const EtiquetteHomePage({super.key});
@@ -163,6 +162,12 @@ class _EtiquetteHomePageState extends State<EtiquetteHomePage> {
     });
   }
 
+  void _refreshHome() {
+    if (!_loading) {
+      _loadData();
+    }
+  }
+
   Color _hexToColor(String hex) {
     final cleaned = hex.replaceAll('#', '').padLeft(6, '0');
     return Color(int.parse('FF$cleaned', radix: 16));
@@ -238,10 +243,15 @@ class _EtiquetteHomePageState extends State<EtiquetteHomePage> {
                     ),
                     const AccountPage(),
                   ],
-                ),
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        onTap: (index) => setState(() => _selectedIndex = index),
+        onTap: (index) {
+          setState(() => _selectedIndex = index);
+          if (index == 0) {
+            _refreshHome();
+          }
+        },
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),

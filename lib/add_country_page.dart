@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-
 import 'api_client.dart';
 import 'demo_auth_state.dart';
 import 'gradient_background.dart';
@@ -16,46 +14,39 @@ class _AddCountryPageState extends State<AddCountryPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _flagUrlController = TextEditingController();
   final _accentController = TextEditingController(text: '2196F3');
   final _etiquetteController = TextEditingController();
   final _travelController = TextEditingController();
   final _api = ApiClient();
   bool _saving = false;
-  XFile? _flagFile;
-  final ImagePicker _picker = ImagePicker();
 
   @override
   void dispose() {
     _nameController.dispose();
     _descriptionController.dispose();
+    _flagUrlController.dispose();
     _accentController.dispose();
     _etiquetteController.dispose();
     _travelController.dispose();
     super.dispose();
   }
 
-  Future<void> _pickFlag() async {
-    final file = await _picker.pickImage(source: ImageSource.gallery, maxWidth: 800);
-    if (file != null) {
-      setState(() {
-        _flagFile = file;
-      });
-    }
-  }
-
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    if (_flagFile == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please upload a flag image')),
-      );
-      return;
-    }
     setState(() => _saving = true);
-    final userId = DemoAuthState.instance.userId;
+    final auth = DemoAuthState.instance;
+    final userId = auth.userId;
     if (userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Sign in first')),
+      );
+      setState(() => _saving = false);
+      return;
+    }
+    if (!auth.isAdmin) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Admin only action')),
       );
       setState(() => _saving = false);
       return;
@@ -70,19 +61,14 @@ class _AddCountryPageState extends State<AddCountryPage> {
         .map((e) => e.trim())
         .where((e) => e.isNotEmpty)
         .toList();
+    final accent = _accentController.text.trim().replaceAll('#', '').toUpperCase();
     try {
-      final flagBytes = await _flagFile!.readAsBytes();
-      final flagUrl = await _api.uploadImage(
-        target: 'flag',
-        bytes: flagBytes,
-        filename: _flagFile!.name,
-      );
       await _api.addCountry(
         userId: userId,
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
-        flagAsset: flagUrl,
-        accentHex: _accentController.text.trim().replaceAll('#', ''),
+        flagAsset: _flagUrlController.text.trim(),
+        accentHex: accent,
         etiquetteTips: etiquetteTips,
         travelTips: travelTips,
       );
@@ -143,15 +129,21 @@ class _AddCountryPageState extends State<AddCountryPage> {
                               v == null || v.trim().isEmpty ? 'Required' : null,
                         ),
                         const SizedBox(height: 12),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: ElevatedButton.icon(
-                            onPressed: _saving ? null : _pickFlag,
-                            icon: const Icon(Icons.upload_file_outlined),
-                            label: Text(_flagFile == null
-                                ? 'Upload flag image'
-                                : 'Flag selected: ${_flagFile!.name}'),
+                        TextFormField(
+                          controller: _flagUrlController,
+                          decoration: const InputDecoration(
+                            labelText: 'Flag image URL',
+                            hintText: 'http://...',
+                            prefixIcon: Icon(Icons.link),
                           ),
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) return 'Required';
+                            final val = v.trim().toLowerCase();
+                            if (!val.startsWith('http')) {
+                              return 'Enter a full URL (http://...)';
+                            }
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 12),
                         TextFormField(

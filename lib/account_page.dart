@@ -95,6 +95,15 @@ class AccountPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final auth = DemoAuthState.instance;
+    String? profileUrl() {
+      final raw = auth.profilePicUrl;
+      if (raw == null) return null;
+      final trimmed = raw.trim();
+      if (trimmed.isEmpty) return null;
+      return trimmed.startsWith('http')
+          ? trimmed
+          : 'http://mobcrud.atwebpages.com/api/uploads/${trimmed.replaceFirst(RegExp(r'^/+'), '')}';
+    }
 
     return GradientBackground(
       child: SafeArea(
@@ -114,23 +123,22 @@ class AccountPage extends StatelessWidget {
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
-                      CircleAvatar(
-                        radius: 36,
-                        backgroundColor: Colors.grey.shade200,
-                        backgroundImage: auth.profilePicUrl != null &&
-                                auth.profilePicUrl!.trim().isNotEmpty
-                            ? NetworkImage(auth.profilePicUrl!.trim())
-                            : (auth.avatarBytes != null
-                                ? MemoryImage(auth.avatarBytes!)
-                                : null),
-                        child: (auth.avatarBytes == null &&
-                                (auth.profilePicUrl == null ||
-                                    auth.profilePicUrl!.trim().isEmpty))
-                            ? const Icon(
-                                Icons.person_outline,
-                                size: 42,
-                                color: Colors.black87,
-                              )
+                        CircleAvatar(
+                          radius: 36,
+                          backgroundColor: Colors.grey.shade200,
+                          backgroundImage: profileUrl() != null
+                              ? NetworkImage(profileUrl()!)
+                              : (auth.avatarBytes != null
+                                  ? MemoryImage(auth.avatarBytes!)
+                                  : null),
+                          child: (auth.avatarBytes == null &&
+                                  (auth.profilePicUrl == null ||
+                                      auth.profilePicUrl!.trim().isEmpty))
+                              ? const Icon(
+                                  Icons.person_outline,
+                                  size: 42,
+                                  color: Colors.black87,
+                                )
                               : null,
                         ),
                         const SizedBox(height: 12),
@@ -160,9 +168,11 @@ class AccountPage extends StatelessWidget {
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
-                              onPressed: () => _openPage(context, const LoginPage()),
+                              onPressed: () =>
+                                  _openPage(context, const LoginPage()),
                               style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 14),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -176,7 +186,8 @@ class AccountPage extends StatelessWidget {
                             child: OutlinedButton(
                               onPressed: auth.signOut,
                               style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 14),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -188,7 +199,7 @@ class AccountPage extends StatelessWidget {
                     ),
                   ),
                 ),
-                  const SizedBox(height: 16),
+                const SizedBox(height: 16),
                 if (signedIn) ...[
                   Card(
                     elevation: 2,
@@ -203,12 +214,13 @@ class AccountPage extends StatelessWidget {
                           title: const Text('Account details'),
                           subtitle: Text(auth.displayName),
                           trailing: const Icon(Icons.chevron_right),
-                          onTap: () => _openPage(context, const AccountDetailsPage()),
+                          onTap: () =>
+                              _openPage(context, const AccountDetailsPage()),
                         ),
                         const Divider(height: 1),
                         ListTile(
-                          leading:
-                              const Icon(Icons.shield_outlined, color: Colors.black87),
+                          leading: const Icon(Icons.shield_outlined,
+                              color: Colors.black87),
                           title: const Text('Security'),
                           subtitle: const Text('Change your password'),
                           trailing: const Icon(Icons.chevron_right),
@@ -217,36 +229,40 @@ class AccountPage extends StatelessWidget {
                         if (auth.isAdmin) ...[
                           const Divider(height: 1),
                           ListTile(
-                            leading:
-                                const Icon(Icons.add_location_alt_outlined, color: Colors.black87),
+                            leading: const Icon(Icons.add_location_alt_outlined,
+                                color: Colors.black87),
                             title: const Text('Add country'),
                             subtitle: const Text('Admin only'),
                             trailing: const Icon(Icons.chevron_right),
-                            onTap: () => _openPage(context, const AddCountryPage()),
+                            onTap: () =>
+                                _openPage(context, const AddCountryPage()),
                           ),
                           const Divider(height: 1),
                           ListTile(
-                            leading: const Icon(Icons.delete_outline, color: Colors.black87),
+                            leading: const Icon(Icons.delete_outline,
+                                color: Colors.black87),
                             title: const Text('Edit/Delete country'),
                             subtitle: const Text('Admin only'),
                             trailing: const Icon(Icons.chevron_right),
                             onTap: () {
                               if (auth.userId == null) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Sign in first')),
+                                  const SnackBar(
+                                      content: Text('Sign in first')),
+                                );
+                                return;
+                              }
+                              _openPage(
+                                context,
+                                const DeleteEditCountryPage(),
                               );
-                              return;
-                            }
-                            _openPage(
-                              context,
-                              const DeleteEditCountryPage(),
-                            );
-                          },
-                        ),
+                            },
+                          ),
                         ],
                         const Divider(height: 1),
                         ListTile(
-                          leading: const Icon(Icons.delete_outline, color: Colors.red),
+                          leading:
+                              const Icon(Icons.delete_outline, color: Colors.red),
                           title: const Text(
                             'Delete account',
                             style: TextStyle(color: Colors.red),
@@ -255,8 +271,8 @@ class AccountPage extends StatelessWidget {
                             'Remove this account from the app',
                             style: TextStyle(color: Colors.red),
                           ),
-                          trailing:
-                              const Icon(Icons.chevron_right, color: Colors.red),
+                          trailing: const Icon(Icons.chevron_right,
+                              color: Colors.red),
                           onTap: () => _confirmDelete(context),
                         ),
                       ],
@@ -272,18 +288,18 @@ class AccountPage extends StatelessWidget {
                   child: Column(
                     children: [
                       ListTile(
-                        leading:
-                            const Icon(Icons.info_outline, color: Colors.black87),
+                        leading: const Icon(Icons.info_outline,
+                            color: Colors.black87),
                         title: const Text('About Us'),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () => _openPage(context, const AboutUsPage()),
                       ),
                       const Divider(height: 1),
                       ListTile(
-                        leading: const Icon(Icons.mail_outline, color: Colors.black87),
+                        leading: const Icon(Icons.mail_outline,
+                            color: Colors.black87),
                         title: const Text('Contact'),
-                        subtitle:
-                            const Text('42130732@students.liu.edu.lb'),
+                        subtitle: const Text('42130732@students.liu.edu.lb'),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () => _openPage(context, const ContactPage()),
                       ),
